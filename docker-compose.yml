@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: shopify-challenge-server
+    container_name: shopify-challenge-node-server
+    volumes:
+      - ./server/:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '5000:5000'
+    depends_on:
+      - postgres
+    env_file: .env
+    command: sh -c "/wait && node app.js"
+    environment:
+      - WAIT_HOSTS=postgres:5432
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: 'inventory_app_db'
+    expose:
+      - 5432
+
+  client:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: shopify-challenge-client
+    container_name: shopify-challenge-react-client
+    command: npm start
+    volumes:
+      - ./client/:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - '3000:3000'
